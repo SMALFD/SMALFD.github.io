@@ -5,7 +5,7 @@ const parrafoDias = document.getElementById("toBeUpdatedDays");
 const parrafoHoras = document.getElementById("toBeUpdatedHours");
 const parrafoMinutos = document.getElementById("toBeUpdatedMinutos");
 
-//SetDates
+//Setear la fecha actual
 const currentDate = new Date();
 const month = currentDate.getMonth() + 1;
 const dayOfMonth = currentDate.getDate();
