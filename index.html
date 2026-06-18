@@ -1,0 +1,1236 @@
+<!doctype html>
+<html lang="es name="viewport" content="width=device-width,initial-scale=1" /><html lang="es">
+  <title>Contador de Dardos (x01)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2e;
+      --card2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#22c55e;
+      --accent2:#60a5fa;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+      --border:rgba(255,255,255,.08);
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: radial-gradient(1000px 600px at 20% 0%, rgba(96,165,250,.18), transparent 55%),
+                  radial-gradient(900px 500px at 80% 10%, rgba(34,197,94,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      padding:22px;
+    }
+    .app{
+      width:min(1100px, 100%);
+      display:grid;
+      gap:16px;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .title h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .badge{
+      font-family: var(--mono);
+      font-size:12px;
+      color: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      padding:8px 10px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      white-space:nowrap;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .content{
+      padding:16px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    @media (min-width: 920px){
+      .grid-2{
+        grid-template-columns: 360px 1fr;
+      }
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    label{
+      font-size:13px;
+      color:var(--muted);
+      display:block;
+      margin-bottom:6px;
+    }
+    input, select{
+      width:100%;
+      background: rgba(0,0,0,.22);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(96,165,250,.55);
+      box-shadow: 0 0 0 3px rgba(96,165,250,.15);
+    }
+    .btn{
+      cursor:pointer;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 14px;
+      padding:10px 12px;
+      font-weight:600;
+      transition: transform .04s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.09); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: rgba(34,197,94,.18);
+      border-color: rgba(34,197,94,.35);
+    }
+    .btn.primary:hover{ background: rgba(34,197,94,.25); }
+    .btn.blue{
+      background: rgba(96,165,250,.18);
+      border-color: rgba(96,165,250,.35);
+    }
+    .btn.blue:hover{ background: rgba(96,165,250,.25); }
+    .btn.danger{
+      background: rgba(239,68,68,.16);
+      border-color: rgba(239,68,68,.35);
+    }
+    .btn.danger:hover{ background: rgba(239,68,68,.22); }
+    .btn.small{
+      padding:8px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    .muted{
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .playerRow{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:8px;
+      align-items:center;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      font-family: var(--mono);
+      font-size:12px;
+      color: rgba(255,255,255,.88);
+    }
+    .screen{ display:none; }
+    .screen.active{ display:block; }
+
+    /* GAME LAYOUT */
+    .gameWrap{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    @media (min-width: 920px){
+      .gameWrap{
+        grid-template-columns: 360px 1fr;
+        align-items:start;
+      }
+    }
+    .scoreboard{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .scoreItem{
+      padding:12px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .scoreItem.active{
+      border-color: rgba(34,197,94,.55);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.12);
+    }
+    .scoreName{
+      font-weight:700;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width: 0;
+    }
+    .scoreName small{ color:var(--muted); font-weight:500; }
+    .scoreVal{
+      font-family: var(--mono);
+      font-size:16px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .boardArea{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width: 920px){
+      .boardArea{
+        grid-template-columns: 1fr 310px;
+      }
+    }
+    .boardCard{
+      padding:14px;
+    }
+    canvas{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius: 22px;
+      border:1px solid var(--border);
+      background: radial-gradient(circle at center, rgba(255,255,255,.05), rgba(0,0,0,.25));
+    }
+    .panel{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .kpi .box{
+      border:1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      padding:10px 12px;
+    }
+    .kpi .box .big{
+      font-family: var(--mono);
+      font-size:18px;
+      font-weight:900;
+    }
+    .kpi .box .lbl{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:2px;
+    }
+    .throws{
+      border:1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      padding:10px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .throwLine{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-family: var(--mono);
+      font-size:13px;
+      padding:8px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.03);
+    }
+    .throwLine .tag{
+      font-family: var(--sans);
+      font-size:12px;
+      color: rgba(255,255,255,.86);
+      background: rgba(96,165,250,.15);
+      border:1px solid rgba(96,165,250,.25);
+      padding:3px 8px;
+      border-radius: 999px;
+    }
+    .msg{
+      border:1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.18);
+      padding:10px 12px;
+      color: rgba(255,255,255,.9);
+      font-size:13px;
+      min-height: 46px;
+      display:flex;
+      align-items:center;
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .divider{
+      height:1px;
+      background: rgba(255,255,255,.08);
+      margin:4px 0;
+    }
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+    }
+    .toggle input[type="checkbox"]{
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+    .footerBtns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size:12px;
+      color: rgba(255,255,255,.85);
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      padding:2px 6px;
+      border-radius: 8px;
+      white-space:nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>Contador de Dardos (x01)</h1>
+        <p>Selecciona el juego y jugadores, y registra cada tiro tocando la diana (3 dardos por turno).</p>
+      </div>
+      <div class="badge" id="topBadge">Listo</div>
+    </header>
+
+    <!-- SETUP SCREEN -->
+    <section class="card screen active" id="screenSetup">
+      <div class="content">
+        <div class="grid grid-2">
+          <div class="card" style="background:rgba(0,0,0,.16); border:1px solid var(--border);">
+            <div class="content">
+              <h2 style="margin:0 0 10px 0; font-size:16px;">1) Configuración</h2>
+
+              <div style="margin-bottom:12px;">
+                <label for="gameSelect">Juego (x01)</label>
+                <select id="gameSelect">
+                  <option value="301">301</option>
+                  <option value="501" selected>501</option>
+                  <option value="701">701</option>
+                  <option value="901">901</option>
+                  <option value="custom">Personalizado…</option>
+                </select>
+              </div>
+
+              <div style="margin-bottom:12px;" id="customWrap" hidden>
+                <label for="customStart">Puntuación inicial</label>
+                <input id="customStart" type="number" min="1" step="1" placeholder="Ej: 501" />
+                <div class="muted" style="margin-top:6px;">Consejo: usa un número múltiplo de 2 si juegas con “doble salida”.</div>
+              </div>
+
+              <div class="toggle" style="margin-bottom:12px;">
+                <input type="checkbox" id="doubleOut" checked />
+                <div>
+                  <div style="font-weight:700;">Doble salida (Double Out)</div>
+                  <div class="muted">Para ganar, el último dardo debe ser doble o bull (50).</div>
+                </div>
+              </div>
+
+              <div class="toggle" style="margin-bottom:12px;">
+                <input type="checkbox" id="rememberState" checked />
+                <div>
+                  <div style="font-weight:700;">Recordar partida (local)</div>
+                  <div class="muted">Guarda el estado en este navegador (localStorage).</div>
+                </div>
+              </div>
+
+              <div class="footerBtns">
+                <button class="btn blue" id="btnLoad" type="button">Cargar guardada</button>
+                <button class="btn primary" id="btnStart" type="button">Empezar</button>
+              </div>
+
+              <div class="divider"></div>
+              <div class="hint">
+                Atajos en partida: <span class="kbd">U</span> deshacer · <span class="kbd">N</span> siguiente jugador · <span class="kbd">R</span> reiniciar.
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="background:rgba(0,0,0,.16); border:1px solid var(--border);">
+            <div class="content">
+              <h2 style="margin:0 0 10px 0; font-size:16px;">2) Jugadores</h2>
+              <div class="muted" style="margin-bottom:10px;">Añade jugadores y ponles nombre para identificarlos.</div>
+
+              <div class="list" id="playersList"></div>
+
+              <div class="row" style="justify-content:space-between; margin-top:12px;">
+                <button class="btn" id="btnAddPlayer" type="button">+ Añadir jugador</button>
+                <span class="pill" id="playerCountPill">0 jugadores</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+    <section class="card screen" id="screenGame">
+      <div class="content">
+        <div class="gameWrap">
+          <div class="scoreboard" id="scoreboard"></div>
+
+          <div class="boardArea">
+            <div class="card boardCard">
+              <div class="row" style="justify-content:space-between; margin-bottom:10px;">
+                <div>
+                  <div style="font-weight:800; font-size:14px;">Diana</div>
+                  <div class="muted">Toca donde ha impactado cada dardo (máx. 3 por turno).</div>
+                </div>
+                <div class="pill" id="turnPill">Turno</div>
+              </div>
+
+              <canvas id="dartboard" width="900" height="900" aria-label="Diana"></canvas>
+
+              <div class="hint" style="margin-top:10px;">
+                Zonas: Single / Triple / Double / Bull (25) / Bullseye (50). Fuera = 0.
+              </div>
+            </div>
+
+            <div class="card panel">
+              <div class="kpi">
+                <div class="box">
+                  <div class="big" id="kpiPlayer">—</div>
+                  <div class="lbl">Jugador actual</div>
+                </div>
+                <div class="box">
+                  <div class="big" id="kpiRemaining">—</div>
+                  <div class="lbl">Restante</div>
+                </div>
+                <div class="box">
+                  <div class="big" id="kpiTurnTotal">0</div>
+                  <div class="lbl">Puntos este turno</div>
+                </div>
+                <div class="box">
+                  <div class="big" id="kpiDarts">0/3</div>
+                  <div class="lbl">Dardos</div>
+                </div>
+              </div>
+
+              <div class="throws">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-weight:800;">Tiros del turno</div>
+                  <span class="pill" id="gamePill">501 · Double Out</span>
+                </div>
+                <div id="throwsList"></div>
+              </div>
+
+              <div class="msg" id="msgBox">Haz tu primer tiro tocando la diana.</div>
+
+              <div class="row" style="justify-content:space-between;">
+                <button class="btn small" id="btnUndo" type="button">Deshacer (U)</button>
+                <button class="btn blue small" id="btnNext" type="button">Siguiente jugador (N)</button>
+              </div>
+
+              <div class="row" style="justify-content:space-between;">
+                <button class="btn danger small" id="btnReset" type="button">Reiniciar partida (R)</button>
+                <button class="btn small" id="btnBack" type="button">Volver a inicio</button>
+              </div>
+
+              <div class="divider"></div>
+              <div class="hint">
+                <b>Reglas x01</b>: restas puntos. Si te pasas (bust) o llegas a 0 sin doble salida válida, el turno termina y vuelves al inicio del turno.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+(function(){
+  // --- CONFIG / CONSTANTS ---
+  const SECTOR_NUMBERS = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5]; // empezando arriba, sentido horario
+  const TWO_PI = Math.PI * 2;
+
+  // ring ratios (relative to radius)
+  const R = {
+    OUT: 1.00,            // edge
+    DOUBLE_IN: 0.90,      // inner edge of double ring
+    SINGLE_OUT_IN: 0.60,  // inner edge of outer single (between double & triple)
+    TRIPLE_OUT: 0.60,     // outer edge of triple ring
+    TRIPLE_IN: 0.50,      // inner edge of triple ring
+    SINGLE_IN: 0.18,      // inner single area ends where bull starts
+    OUTER_BULL: 0.18,     // outer bull outer radius
+    INNER_BULL: 0.09      // inner bull radius
+  };
+
+  // --- STATE ---
+  const state = {
+    startScore: 501,
+    doubleOut: true,
+    remember: true,
+    players: [], // {name, remaining, legsWon?}
+    currentIndex: 0,
+    turnStartRemaining: 0,
+    throws: [], // current turn throws: {label, score, isDouble, isBull50, x, y}
+    gameOver: false
+  };
+
+  // --- DOM ---
+  const el = (id)=>document.getElementById(id);
+
+  const screenSetup = el('screenSetup');
+  const screenGame = el('screenGame');
+  const topBadge = el('topBadge');
+
+  const gameSelect = el('gameSelect');
+  const customWrap = el('customWrap');
+  const customStart = el('customStart');
+  const doubleOut = el('doubleOut');
+  const rememberState = el('rememberState');
+
+  const playersList = el('playersList');
+  const playerCountPill = el('playerCountPill');
+
+  const btnAddPlayer = el('btnAddPlayer');
+  const btnStart = el('btnStart');
+  const btnLoad = el('btnLoad');
+
+  const scoreboard = el('scoreboard');
+  const dartboard = el('dartboard');
+  const ctx = dartboard.getContext('2d');
+
+  const kpiPlayer = el('kpiPlayer');
+  const kpiRemaining = el('kpiRemaining');
+  const kpiTurnTotal = el('kpiTurnTotal');
+  const kpiDarts = el('kpiDarts');
+
+  const gamePill = el('gamePill');
+  const turnPill = el('turnPill');
+  const throwsList = el('throwsList');
+  const msgBox = el('msgBox');
+
+  const btnUndo = el('btnUndo');
+  const btnNext = el('btnNext');
+  const btnReset = el('btnReset');
+  const btnBack = el('btnBack');
+
+  // --- HELPERS ---
+  function setBadge(text){
+    topBadge.textContent = text;
+  }
+
+  function saveToLocal(){
+    if(!state.remember) return;
+    const payload = {
+      startScore: state.startScore,
+      doubleOut: state.doubleOut,
+      remember: state.remember,
+      players: state.players,
+      currentIndex: state.currentIndex,
+      turnStartRemaining: state.turnStartRemaining,
+      throws: state.throws,
+      gameOver: state.gameOver
+    };
+    localStorage.setItem('darts_x01_state_v1', JSON.stringify(payload));
+  }
+  function loadFromLocal(){
+    const raw = localStorage.getItem('darts_x01_state_v1');
+    if(!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+  function clearLocal(){
+    localStorage.removeItem('darts_x01_state_v1');
+  }
+
+  function formatThrow(t){
+    return `${t.label} = ${t.score}`;
+  }
+
+  function getTurnTotal(){
+    return state.throws.reduce((a,t)=>a+t.score,0);
+  }
+
+  function updateSetupPlayersPill(){
+    const n = playersList.querySelectorAll('input[data-player-name]').length;
+    playerCountPill.textContent = `${n} jugador${n===1?'':'es'}`;
+  }
+
+  function addPlayerRow(name=''){
+    const wrap = document.createElement('div');
+    wrap.className = 'playerRow';
+    wrap.innerHTML = `
+      <input data-player-name type="text" maxlength="24" placeholder="Nombre del jugador" value="${escapeHtml(name)}" />
+      <button class="btn small danger" type="button" title="Eliminar">✕</button>
+    `;
+    const input = wrap.querySelector('input');
+    const del = wrap.querySelector('button');
+    del.addEventListener('click', ()=>{
+      wrap.remove();
+      updateSetupPlayersPill();
+    });
+    input.addEventListener('input', updateSetupPlayersPill);
+    playersList.appendChild(wrap);
+    updateSetupPlayersPill();
+    input.focus();
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+
+  function showScreen(which){
+    if(which==='setup'){
+      screenSetup.classList.add('active');
+      screenGame.classList.remove('active');
+      setBadge('Configuración');
+    }else{
+      screenSetup.classList.remove('active');
+      screenGame.classList.add('active');
+      setBadge('Partida en curso');
+    }
+  }
+
+  function computeStartScoreFromUI(){
+    const v = gameSelect.value;
+    if(v === 'custom'){
+      const n = parseInt(customStart.value, 10);
+      return Number.isFinite(n) && n>0 ? n : 501;
+    }
+    return parseInt(v,10);
+  }
+
+  function updateGamePill(){
+    const label = `${state.startScore} · ${state.doubleOut ? 'Double Out' : 'Salida libre'}`;
+    gamePill.textContent = label;
+  }
+
+  function rebuildScoreboard(){
+    scoreboard.innerHTML = '';
+    state.players.forEach((p, idx)=>{
+      const item = document.createElement('div');
+      item.className = 'scoreItem' + (idx===state.currentIndex ? ' active':'');
+      item.innerHTML = `
+        <div class="scoreName" title="${escapeHtml(p.name)}">
+          <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+          <small>${idx===state.currentIndex ? 'Turno actual' : 'En espera'}</small>
+        </div>
+        <div class="scoreVal">${p.remaining}</div>
+      `;
+      scoreboard.appendChild(item);
+    });
+  }
+
+  function updateKPIs(){
+    const p = state.players[state.currentIndex];
+    kpiPlayer.textContent = p ? p.name : '—';
+    kpiRemaining.textContent = p ? p.remaining : '—';
+    kpiTurnTotal.textContent = String(getTurnTotal());
+    kpiDarts.textContent = `${state.throws.length}/3`;
+    turnPill.textContent = p ? `Turno de ${p.name}` : 'Turno';
+  }
+
+  function renderThrows(){
+    throwsList.innerHTML = '';
+    for(let i=0;i<3;i++){
+      const t = state.throws[i];
+      const line = document.createElement('div');
+      line.className = 'throwLine';
+      if(t){
+        line.innerHTML = `
+          <div><span class="tag">Dardo ${i+1}</span> ${escapeHtml(t.label)}</div>
+          <div><b>${t.score}</b></div>
+        `;
+      }else{
+        line.innerHTML = `
+          <div><span class="tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);">Dardo ${i+1}</span> <span style="color:rgba(255,255,255,.65)">—</span></div>
+          <div style="color:rgba(255,255,255,.65)">—</div>
+        `;
+      }
+      throwsList.appendChild(line);
+    }
+  }
+
+  function setMsg(text, type='info'){
+    const colors = {
+      info: 'rgba(255,255,255,.90)',
+      ok: 'rgba(34,197,94,.95)',
+      warn: 'rgba(245,158,11,.95)',
+      bad: 'rgba(239,68,68,.95)'
+    };
+    msgBox.style.color = colors[type] || colors.info;
+    msgBox.textContent = text;
+  }
+
+  // --- DARTBOARD DRAWING ---
+  function drawBoard(highlight=null){
+    // highlight: {sectorIndex, ringName}
+    const w = dartboard.width, h = dartboard.height;
+    const cx = w/2, cy = h/2;
+    const radius = Math.min(w,h)*0.48;
+
+    ctx.clearRect(0,0,w,h);
+
+    // background glow
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius*1.06,0,TWO_PI);
+    const g = ctx.createRadialGradient(cx,cy,radius*0.2,cx,cy,radius*1.06);
+    g.addColorStop(0,'rgba(255,255,255,.05)');
+    g.addColorStop(1,'rgba(0,0,0,.55)');
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.restore();
+
+    // function to draw a ring segment
+    const sectorAngle = TWO_PI/20;
+    const startAngleBase = -Math.PI/2; // top
+
+    function arcSegment(rOuter, rInner, i, fill){
+      const a0 = startAngleBase + i*sectorAngle;
+      const a1 = a0 + sectorAngle;
+
+      ctx.beginPath();
+      ctx.arc(cx,cy,rOuter,a0,a1);
+      ctx.arc(cx,cy,rInner,a1,a0,true);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+
+      // subtle border
+      ctx.strokeStyle = 'rgba(255,255,255,.06)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // colors alternating
+    const colA = 'rgba(255,255,255,.10)';
+    const colB = 'rgba(0,0,0,.35)';
+    const green = 'rgba(34,197,94,.45)';
+    const red = 'rgba(239,68,68,.40)';
+
+    // rings:
+    // outer single (between double and triple)
+    // double ring
+    // triple ring
+    // inner single
+
+    // draw outer single (from SINGLE_OUT_IN to DOUBLE_IN)
+    for(let i=0;i<20;i++){
+      const fill = (i%2===0) ? colA : colB;
+      arcSegment(radius*R.DOUBLE_IN, radius*R.SINGLE_OUT_IN, i, fill);
+    }
+
+    // double ring (from OUT to DOUBLE_IN) alternating red/green
+    for(let i=0;i<20;i++){
+      const fill = (i%2===0) ? red : green;
+      arcSegment(radius*R.OUT, radius*R.DOUBLE_IN, i, fill);
+    }
+
+    // triple ring (from TRIPLE_OUT to TRIPLE_IN) alternating red/green
+    for(let i=0;i<20;i++){
+      const fill = (i%2===0) ? green : red;
+      arcSegment(radius*R.TRIPLE_OUT, radius*R.TRIPLE_IN, i, fill);
+    }
+
+    // inner single (from TRIPLE_IN to SINGLE_IN) alternating
+    for(let i=0;i<20;i++){
+      const fill = (i%2===0) ? colB : colA;
+      arcSegment(radius*R.TRIPLE_IN, radius*R.SINGLE_IN, i, fill);
+    }
+
+    // bull areas
+    // outer bull
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius*R.OUTER_BULL,0,TWO_PI);
+    ctx.fillStyle = 'rgba(34,197,94,.35)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.stroke();
+
+    // inner bull
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius*R.INNER_BULL,0,TWO_PI);
+    ctx.fillStyle = 'rgba(239,68,68,.35)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.10)';
+    ctx.stroke();
+
+    // numbers (simple)
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,.88)';
+    ctx.font = `bold ${Math.round(radius*0.08)}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for(let i=0;i<20;i++){
+      const mid = startAngleBase + i*sectorAngle + sectorAngle/2;
+      const rText = radius*1.075;
+      const x = cx + Math.cos(mid)*rText;
+      const y = cy + Math.sin(mid)*rText;
+      ctx.fillText(String(SECTOR_NUMBERS[i]), x, y);
+    }
+    ctx.restore();
+
+    // highlight last hit
+    if(highlight){
+      const {sectorIndex, ring} = highlight;
+      ctx.save();
+      ctx.globalAlpha = 0.30;
+      ctx.fillStyle = 'rgba(96,165,250,.65)';
+      if(ring === 'INNER_BULL'){
+        ctx.beginPath();
+        ctx.arc(cx,cy,radius*R.INNER_BULL,0,TWO_PI);
+        ctx.fill();
+      } else if(ring === 'OUTER_BULL'){
+        ctx.beginPath();
+        ctx.arc(cx,cy,radius*R.OUTER_BULL,0,TWO_PI);
+        ctx.arc(cx,cy,radius*R.INNER_BULL,0,TWO_PI,true);
+        ctx.fill();
+      } else if(sectorIndex!=null){
+        // ring radii by name
+        let rOut, rIn;
+        if(ring === 'DOUBLE'){ rOut = radius*R.OUT; rIn = radius*R.DOUBLE_IN; }
+        else if(ring === 'TRIPLE'){ rOut = radius*R.TRIPLE_OUT; rIn = radius*R.TRIPLE_IN; }
+        else if(ring === 'SINGLE_OUT'){ rOut = radius*R.DOUBLE_IN; rIn = radius*R.SINGLE_OUT_IN; }
+        else if(ring === 'SINGLE_IN'){ rOut = radius*R.TRIPLE_IN; rIn = radius*R.SINGLE_IN; }
+        else { rOut = radius*R.OUT; rIn = radius*R.SINGLE_IN; }
+
+        const sectorAngle = TWO_PI/20;
+        const startAngleBase = -Math.PI/2;
+        const a0 = startAngleBase + sectorIndex*sectorAngle;
+        const a1 = a0 + sectorAngle;
+
+        ctx.beginPath();
+        ctx.arc(cx,cy,rOut,a0,a1);
+        ctx.arc(cx,cy,rIn,a1,a0,true);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // center dot
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,.14)';
+    ctx.beginPath();
+    ctx.arc(cx,cy,4,0,TWO_PI);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function getHitFromCanvasEvent(ev){
+    const rect = dartboard.getBoundingClientRect();
+    const scaleX = dartboard.width / rect.width;
+    const scaleY = dartboard.height / rect.height;
+    const x = (ev.clientX - rect.left) * scaleX;
+    const y = (ev.clientY - rect.top) * scaleY;
+
+    const cx = dartboard.width/2, cy = dartboard.height/2;
+    const dx = x - cx;
+    const dy = y - cy;
+
+    const radius = Math.min(dartboard.width, dartboard.height)*0.48;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const r = dist / radius;
+
+    // outside board
+    if(r > R.OUT) return { score:0, label:'Fuera', ring:'OUT', sectorIndex:null, isDouble:false, isBull50:false };
+
+    // angle -> sector
+    let ang = Math.atan2(dy, dx); // -pi..pi, 0 is to the right
+    // convert so 0 is at top and clockwise
+    ang = ang - (-Math.PI/2);
+    // normalize
+    while(ang < 0) ang += TWO_PI;
+    while(ang >= TWO_PI) ang -= TWO_PI;
+
+    const sectorAngle = TWO_PI/20;
+    const sectorIndex = Math.floor(ang / sectorAngle);
+    const number = SECTOR_NUMBERS[sectorIndex];
+
+    // bull
+    if(r <= R.INNER_BULL){
+      return { score:50, label:'Bullseye (50)', ring:'INNER_BULL', sectorIndex:null, isDouble:true, isBull50:true };
+    }
+    if(r <= R.OUTER_BULL){
+      return { score:25, label:'Bull (25)', ring:'OUTER_BULL', sectorIndex:null, isDouble:false, isBull50:false };
+    }
+
+    // rings
+    // double ring
+    if(r >= R.DOUBLE_IN && r <= R.OUT){
+      return { score:number*2, label:`D${number}`, ring:'DOUBLE', sectorIndex, isDouble:true, isBull50:false };
+    }
+    // triple ring
+    if(r >= R.TRIPLE_IN && r <= R.TRIPLE_OUT){
+      return { score:number*3, label:`T${number}`, ring:'TRIPLE', sectorIndex, isDouble:false, isBull50:false };
+    }
+    // single outer
+    if(r >= R.SINGLE_OUT_IN && r < R.DOUBLE_IN){
+      return { score:number, label:`S${number}`, ring:'SINGLE_OUT', sectorIndex, isDouble:false, isBull50:false };
+    }
+    // single inner
+    return { score:number, label:`S${number}`, ring:'SINGLE_IN', sectorIndex, isDouble:false, isBull50:false };
+  }
+
+  // --- GAME LOGIC ---
+  function startNewGameFromSetup(players, startScore, isDoubleOut, remember){
+    state.startScore = startScore;
+    state.doubleOut = isDoubleOut;
+    state.remember = remember;
+    state.players = players.map(n=>({ name:n, remaining:startScore }));
+    state.currentIndex = 0;
+    state.throws = [];
+    state.gameOver = false;
+    state.turnStartRemaining = startScore;
+
+    updateGamePill();
+    rebuildScoreboard();
+    updateKPIs();
+    renderThrows();
+    drawBoard();
+    setMsg('Haz tu primer tiro tocando la diana.', 'info');
+    showScreen('game');
+    saveToLocal();
+  }
+
+  function beginTurn(){
+    const p = state.players[state.currentIndex];
+    state.throws = [];
+    state.turnStartRemaining = p.remaining;
+    updateKPIs();
+    renderThrows();
+    drawBoard();
+    setMsg(`Turno de ${p.name}. Tira tocando la diana.`, 'info');
+    saveToLocal();
+  }
+
+  function nextPlayer(){
+    if(state.gameOver) return;
+    state.currentIndex = (state.currentIndex + 1) % state.players.length;
+    rebuildScoreboard();
+    beginTurn();
+  }
+
+  function bust(){
+    const p = state.players[state.currentIndex];
+    p.remaining = state.turnStartRemaining;
+    rebuildScoreboard();
+    updateKPIs();
+    renderThrows();
+    setMsg('¡BUST! Se anula el turno y vuelves al inicio del turno.', 'bad');
+    saveToLocal();
+    // turn ends immediately
+    setTimeout(()=>{
+      if(!state.gameOver) nextPlayer();
+    }, 400);
+  }
+
+  function win(){
+    const p = state.players[state.currentIndex];
+    state.gameOver = true;
+    rebuildScoreboard();
+    updateKPIs();
+    setMsg(`🎉 ¡${p.name} gana la partida!`, 'ok');
+    saveToLocal();
+  }
+
+  function applyThrow(hit){
+    if(state.gameOver) return;
+    if(state.players.length === 0) return;
+
+    if(state.throws.length >= 3){
+      setMsg('Ya has lanzado 3 dardos. Pulsa “Siguiente jugador”.', 'warn');
+      return;
+    }
+
+    const p = state.players[state.currentIndex];
+
+    const newRemaining = p.remaining - hit.score;
+
+    // build throw record
+    state.throws.push({
+      label: hit.label,
+      score: hit.score,
+      isDouble: !!hit.isDouble,
+      isBull50: !!hit.isBull50,
+      ring: hit.ring,
+      sectorIndex: hit.sectorIndex
+    });
+
+    // highlight last throw
+    drawBoard({ sectorIndex: hit.sectorIndex, ring: hit.ring });
+
+    // Bust conditions
+    if(newRemaining < 0){
+      updateKPIs();
+      renderThrows();
+      return bust();
+    }
+
+    // If double out enabled, remaining 1 is always bust (cannot finish)
+    if(state.doubleOut && newRemaining === 1){
+      updateKPIs();
+      renderThrows();
+      return bust();
+    }
+
+    // If hit reaches exactly 0:
+    if(newRemaining === 0){
+      if(state.doubleOut){
+        const last = state.throws[state.throws.length - 1];
+        const ok = last.isDouble || last.isBull50; // bullseye counts as double in practice
+        if(!ok){
+          updateKPIs();
+          renderThrows();
+          return bust();
+        }
+      }
+      p.remaining = 0;
+      rebuildScoreboard();
+      updateKPIs();
+      renderThrows();
+      return win();
+    }
+
+    // otherwise normal subtract
+    p.remaining = newRemaining;
+
+    rebuildScoreboard();
+    updateKPIs();
+    renderThrows();
+
+    // If 3 darts used, auto prompt to next
+    if(state.throws.length >= 3){
+      setMsg('3 dardos completados. Pulsa “Siguiente jugador”.', 'info');
+    } else {
+      setMsg(`Registrado: ${hit.label} (${hit.score}).`, 'ok');
+    }
+    saveToLocal();
+  }
+
+  function undoLast(){
+    if(state.gameOver) return;
+    const p = state.players[state.currentIndex];
+    if(state.throws.length === 0){
+      setMsg('No hay tiros que deshacer en este turno.', 'warn');
+      return;
+    }
+    const last = state.throws.pop();
+    // revert remaining
+    p.remaining += last.score;
+
+    // if we had bust auto-switched: we avoid complicated rollback; this undo only works within current turn before switching
+    rebuildScoreboard();
+    updateKPIs();
+    renderThrows();
+    drawBoard();
+    setMsg(`Deshecho: ${last.label} (${last.score}).`, 'info');
+    saveToLocal();
+  }
+
+  function resetGame(){
+    if(!confirm('¿Reiniciar la partida actual? (Se perderán los puntos)')) return;
+    state.players.forEach(p=>p.remaining = state.startScore);
+    state.currentIndex = 0;
+    state.throws = [];
+    state.gameOver = false;
+    state.turnStartRemaining = state.startScore;
+    rebuildScoreboard();
+    updateKPIs();
+    renderThrows();
+    drawBoard();
+    setMsg('Partida reiniciada. Turno del primer jugador.', 'info');
+    saveToLocal();
+  }
+
+  // --- EVENTS / UI ---
+  gameSelect.addEventListener('change', ()=>{
+    customWrap.hidden = (gameSelect.value !== 'custom');
+  });
+
+  btnAddPlayer.addEventListener('click', ()=> addPlayerRow(''));
+
+  btnStart.addEventListener('click', ()=>{
+    const startScore = computeStartScoreFromUI();
+    const names = Array.from(playersList.querySelectorAll('input[data-player-name]'))
+      .map(i=>i.value.trim())
+      .filter(Boolean);
+
+    if(names.length < 1){
+      addPlayerRow('Jugador 1');
+      setMsgSetup('Añade al menos 1 jugador.', true);
+      return;
+    }
+    // If duplicates, auto-fix slightly
+    const seen = new Map();
+    const fixed = names.map(n=>{
+      const k = n.toLowerCase();
+      const c = (seen.get(k) || 0) + 1;
+      seen.set(k, c);
+      return c>1 ? `${n} (${c})` : n;
+    });
+
+    startNewGameFromSetup(fixed, startScore, doubleOut.checked, rememberState.checked);
+  });
+
+  btnLoad.addEventListener('click', ()=>{
+    const loaded = loadFromLocal();
+    if(!loaded){
+      alert('No hay partida guardada en este navegador.');
+      return;
+    }
+    // Apply loaded state carefully
+    state.startScore = loaded.startScore ?? 501;
+    state.doubleOut = !!loaded.doubleOut;
+    state.remember = !!loaded.remember;
+    state.players = Array.isArray(loaded.players) ? loaded.players : [];
+    state.currentIndex = loaded.currentIndex ?? 0;
+    state.turnStartRemaining = loaded.turnStartRemaining ?? (state.players[state.currentIndex]?.remaining ?? state.startScore);
+    state.throws = Array.isArray(loaded.throws) ? loaded.throws : [];
+    state.gameOver = !!loaded.gameOver;
+
+    updateGamePill();
+    rebuildScoreboard();
+    updateKPIs();
+    renderThrows();
+    drawBoard(state.throws.length ? {sectorIndex: state.throws[state.throws.length-1].sectorIndex, ring: state.throws[state.throws.length-1].ring} : null);
+    setMsg(state.gameOver ? 'Partida cargada (finalizada).' : 'Partida cargada. Continúa el turno.', 'info');
+    showScreen('game');
+    setBadge('Partida cargada');
+  });
+
+  function setMsgSetup(text, warn=false){
+    setBadge(warn ? 'Revisa la configuración' : 'Configuración');
+    topBadge.style.borderColor = warn ? 'rgba(245,158,11,.45)' : 'rgba(255,255,255,.10)';
+    topBadge.style.background = warn ? 'rgba(245,158,11,.12)' : 'rgba(255,255,255,.06)';
+    topBadge.textContent = text;
+    setTimeout(()=>{
+      topBadge.style.borderColor = 'rgba(255,255,255,.10)';
+      topBadge.style.background = 'rgba(255,255,255,.06)';
+      topBadge.textContent = 'Listo';
+    }, 1200);
+  }
+
+  dartboard.addEventListener('click', (ev)=>{
+    if(!screenGame.classList.contains('active')) return;
+    if(state.gameOver) return;
+    const hit = getHitFromCanvasEvent(ev);
+    applyThrow(hit);
+  });
+
+  btnUndo.addEventListener('click', undoLast);
+
+  btnNext.addEventListener('click', ()=>{
+    if(state.gameOver) return;
+    // End turn; if less than 3 throws it's still OK
+    nextPlayer();
+  });
+
+  btnReset.addEventListener('click', resetGame);
+
+  btnBack.addEventListener('click', ()=>{
+    if(state.remember) saveToLocal();
+    showScreen('setup');
+    setBadge('Configuración');
+  });
+
+  // keyboard shortcuts
+  window.addEventListener('keydown', (e)=>{
+    if(!screenGame.classList.contains('active')) return;
+    const k = e.key.toLowerCase();
+    if(k==='u'){ e.preventDefault(); undoLast(); }
+    if(k==='n'){ e.preventDefault(); if(!state.gameOver) nextPlayer(); }
+    if(k==='r'){ e.preventDefault(); resetGame(); }
+  });
+
+  // --- INIT ---
+  function init(){
+    // setup initial players (2 by default)
+    addPlayerRow('Jugador 1');
+    addPlayerRow('Jugador 2');
+    customWrap.hidden = true;
+
+    drawBoard();
+    setBadge('Listo');
+  }
+  init();
+
+  // redraw on resize for crispness (keeps internal size)
+  function resizeCanvas(){
+    // keep constant internal resolution, CSS scales; but redraw for aspect
+    drawBoard(state.throws.length ? {sectorIndex: state.throws[state.throws.length-1].sectorIndex, ring: state.throws[state.throws.length-1].ring} : null);
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+})();
+</script>
+</body>
+</html>
+<head>
+  <meta charset="utf-8" />
